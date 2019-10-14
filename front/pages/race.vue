@@ -398,16 +398,21 @@ export default {
       for (let i = 0; i < candidates.length; i++) {
         const candidate = candidates[i]
 
-        // // you-on splitted
-        // if (candidate.firstMora.length > 1) {
-        //   const splittedCandidates = moraKeyCandidates[candidate.firstMora[0]]
-        //   for (let j = 0; j < splittedCandidates.length; j++) {
-        //     const c = splittedCandidates[j]
-        //     if (nextBuffer === c) {
-        //
-        //     }
-        //   }
-        // }
+        // you-on splitted
+        if (candidate.firstMora.length > 1) {
+          const splittedCandidates = moraKeyCandidates[candidate.firstMora[0]]
+          for (let j = 0; j < splittedCandidates.length; j++) {
+            const c = splittedCandidates[j]
+            if (nextBuffer === c) {
+              this.remainMoras.splice(0, 1, candidate.firstMora[0])
+              this.remainMoras.splice(1, 0, candidate.firstMora.substring(1))
+              this.doneMoras.push(this.remainMoras.shift())
+              this.doneRomajis += c
+              this.inputBuffer = ''
+              return
+            }
+          }
+        }
 
         // otherwise
         if (candidate.candidate.indexOf(nextBuffer) === 0) {
