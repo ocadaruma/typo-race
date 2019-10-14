@@ -317,6 +317,8 @@ export default {
         'い',
         'お',
         'ん',
+        '４',
+        '２',
         '、',
         'にゃ',
         'ん',
@@ -360,7 +362,7 @@ export default {
       const current = this.getCandidates(0).filter(
         (c) => c.candidate.indexOf(this.inputBuffer) === 0
       )[0]
-      result += current.candidate
+      result += current.candidate.substring(this.inputBuffer.length)
 
       let i = current.length
       while (i < this.remainMoras.length) {
@@ -407,7 +409,7 @@ export default {
               this.remainMoras.splice(0, 1, candidate.firstMora[0])
               this.remainMoras.splice(1, 0, candidate.firstMora.substring(1))
               this.doneMoras.push(this.remainMoras.shift())
-              this.doneRomajis += c
+              this.doneRomajis += key
               this.inputBuffer = ''
               return
             }
@@ -421,14 +423,14 @@ export default {
             for (let k = 0; k < candidate.length; k++) {
               this.doneMoras.push(this.remainMoras.shift())
             }
-            this.doneRomajis += candidate.committablePart
+            this.doneRomajis += key
             this.inputBuffer = ''
             return
           }
           // commit part of composite mora
           if (nextBuffer.length > candidate.committablePart.length) {
             this.doneMoras.push(this.remainMoras.shift())
-            this.doneRomajis += candidate.committablePart
+            this.doneRomajis += key
             this.inputBuffer = nextBuffer.substring(
               candidate.committablePart.length
             )
@@ -437,6 +439,7 @@ export default {
           // commit buffer
           if (candidate.candidate.indexOf(nextBuffer) === 0) {
             this.inputBuffer = nextBuffer
+            this.doneRomajis += key
             return
           }
         }
