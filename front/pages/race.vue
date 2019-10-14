@@ -6,10 +6,12 @@
           <span class="done">{{ doneText }}</span>
           <span>{{ remainText }}</span>
         </div>
-        <footer class="card-footer">
+      </div>
+      <div class="card">
+        <div class="card-content">
           <span class="done">{{ doneRomajis }}</span>
           <span>{{ remainRomajis }}</span>
-        </footer>
+        </div>
       </div>
     </div>
   </section>
@@ -172,6 +174,7 @@ const moraKeyCandidates = {
   ぢゅ: ['DYU'],
   ぢぇ: ['DYE'],
   ぢょ: ['DYO'],
+  っ: ['XTU', 'LTU', 'XTSU', 'LTSU'],
   つ: ['TU', 'TSU'],
   つぁ: ['TSA'],
   つぃ: ['TSI'],
@@ -299,6 +302,7 @@ export default {
         'あ',
         'の',
         'しゃ',
+        'っ',
         'け',
         '、',
         'お',
@@ -327,11 +331,18 @@ export default {
       if (this.remainMoras.length === 0) {
         return result
       }
-      result += moraKeyCandidates[this.remainMoras[0]].filter(
-        (c) => c.indexOf(this.inputBuffer) === 0
+
+      const current = this.getCandidates(0).filter(
+        (c) => c.candidate.indexOf(this.inputBuffer) === 0
       )[0]
-      for (let i = 1; i < this.remainMoras.length; i++) {
-        result += moraKeyCandidates[this.remainMoras[i]][0]
+      result += current.candidate
+
+      let i = current.length
+      while (i < this.remainMoras.length) {
+        const candidate = this.getCandidates(i)[0]
+
+        result += candidate.candidate
+        i += candidate.length
       }
 
       return result
@@ -354,29 +365,92 @@ export default {
         return
       }
 
-      const candidates = moraKeyCandidates[this.remainMoras[0]].filter(
-        (c) => c.indexOf(this.inputBuffer) === 0
+      const candidates = this.getCandidates(0).filter(
+        (c) => c.commitablePart.indexOf(this.inputBuffer) === 0
       )
 
       const nextBuffer = this.inputBuffer + key
       for (let i = 0; i < candidates.length; i++) {
         const candidate = candidates[i]
 
-        // commit mora
-        if (nextBuffer === candidate) {
-          this.doneMoras.push(this.remainMoras.shift())
-          this.doneRomajis += nextBuffer
-          this.inputBuffer = ''
-          return
-        }
-        // commit buffer
-        if (candidate.indexOf(nextBuffer) === 0) {
-          this.inputBuffer = nextBuffer
-          return
+        if (candidate.candidate.indexOf(nextBuffer) === 0) {
+          // commit single mora
+          if (nextBuffer === candidate.candidate) {
+            this.doneMoras.push(this.remainMoras.shift())
+            this.doneRomajis += nextBuffer
+            this.inputBuffer = ''
+            return
+          }
+          // commit composite mora
+          if (nextBuffer.length > candidate.commitablePart.length) {
+            this.doneMoras.push(this.remainMoras.shift())
+            this.doneRomajis += candidate.commitablePart
+            this.inputBuffer = nextBuffer.substring(
+              candidate.commitablePart.length
+            )
+            return
+          }
+          // commit buffer
+          if (candidate.candidate.indexOf(nextBuffer) === 0) {
+            this.inputBuffer = nextBuffer
+            return
+          }
         }
       }
 
       console.log('MISS')
+    },
+    getCandidates(moraPosition) {
+      const mora = this.remainMoras[moraPosition]
+      if (mora === 'ん') {
+        // 撥音
+        if (moraPosition >= this.remainMoras.length - 1) {
+          return moraKeyCandidates[mora].map((c) => {
+            return { candidate: c, commitablePart: c, length: 1 }
+          })
+        }
+        const result = []
+        const nextMora = this.remainMoras[moraPosition + 1]
+        moraKeyCandidates[nextMora].forEach((c) => {
+          if (c.indexOf('N') !== 0) {
+            result.push({
+              candidate: 'N' + c,
+              commitablePart: 'N',
+              length: 2
+            })
+          }
+        })
+        result.push({
+          candidate: 'NN',
+          commitablePart: 'NN',
+          length: 1
+        })
+        return result
+      } else if (mora === 'っ') {
+        // 促音
+        if (this.remainMoras.length < 2) {
+          return moraKeyCandidates[mora].map((c) => {
+            return { candidate: c, commitablePart: c, length: 1 }
+          })
+        }
+        const result = []
+        const nextMora = this.remainMoras[moraPosition + 1]
+        moraKeyCandidates[nextMora].forEach((c) => {
+          result.push({
+            candidate: c[0] + c,
+            commitablePart: c[0],
+            length: 2
+          })
+        })
+        moraKeyCandidates[mora].forEach((c) => {
+          result.push({ candidate: c, commitablePart: c, length: 1 })
+        })
+        return result
+      } else {
+        return moraKeyCandidates[mora].map((c) => {
+          return { candidate: c, commitablePart: c, length: 1 }
+        })
+      }
     }
   }
 }
