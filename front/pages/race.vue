@@ -92,6 +92,26 @@ const keyCodes = {
 }
 
 const moraKeyCandidates = {
+  '０': ['0'],
+  0: ['0'],
+  '１': ['1'],
+  1: ['1'],
+  '２': ['2'],
+  2: ['2'],
+  '３': ['3'],
+  3: ['3'],
+  '４': ['4'],
+  4: ['4'],
+  '５': ['5'],
+  5: ['5'],
+  '６': ['6'],
+  6: ['6'],
+  '７': ['7'],
+  7: ['7'],
+  '８': ['8'],
+  8: ['8'],
+  '９': ['9'],
+  9: ['9'],
   あ: ['A'],
   ぁ: ['XA', 'LA'],
   い: ['I'],
@@ -293,6 +313,11 @@ export default {
       doneMoras: [],
       doneRomajis: '',
       remainMoras: [
+        'ら',
+        'い',
+        'お',
+        'ん',
+        '、',
         'にゃ',
         'ん',
         'ぱ',
@@ -366,27 +391,41 @@ export default {
       }
 
       const candidates = this.getCandidates(0).filter(
-        (c) => c.commitablePart.indexOf(this.inputBuffer) === 0
+        (c) => c.committablePart.indexOf(this.inputBuffer) === 0
       )
 
       const nextBuffer = this.inputBuffer + key
       for (let i = 0; i < candidates.length; i++) {
         const candidate = candidates[i]
 
+        // // you-on splitted
+        // if (candidate.firstMora.length > 1) {
+        //   const splittedCandidates = moraKeyCandidates[candidate.firstMora[0]]
+        //   for (let j = 0; j < splittedCandidates.length; j++) {
+        //     const c = splittedCandidates[j]
+        //     if (nextBuffer === c) {
+        //
+        //     }
+        //   }
+        // }
+
+        // otherwise
         if (candidate.candidate.indexOf(nextBuffer) === 0) {
-          // commit single mora
+          // commit mora
           if (nextBuffer === candidate.candidate) {
-            this.doneMoras.push(this.remainMoras.shift())
-            this.doneRomajis += nextBuffer
+            for (let k = 0; k < candidate.length; k++) {
+              this.doneMoras.push(this.remainMoras.shift())
+            }
+            this.doneRomajis += candidate.committablePart
             this.inputBuffer = ''
             return
           }
-          // commit composite mora
-          if (nextBuffer.length > candidate.commitablePart.length) {
+          // commit part of composite mora
+          if (nextBuffer.length > candidate.committablePart.length) {
             this.doneMoras.push(this.remainMoras.shift())
-            this.doneRomajis += candidate.commitablePart
+            this.doneRomajis += candidate.committablePart
             this.inputBuffer = nextBuffer.substring(
-              candidate.commitablePart.length
+              candidate.committablePart.length
             )
             return
           }
@@ -406,7 +445,12 @@ export default {
         // 撥音
         if (moraPosition >= this.remainMoras.length - 1) {
           return moraKeyCandidates[mora].map((c) => {
-            return { candidate: c, commitablePart: c, length: 1 }
+            return {
+              candidate: c,
+              committablePart: c,
+              length: 1,
+              firstMora: mora
+            }
           })
         }
         const result = []
@@ -415,22 +459,29 @@ export default {
           if (c.indexOf('N') !== 0) {
             result.push({
               candidate: 'N' + c,
-              commitablePart: 'N',
-              length: 2
+              committablePart: c.length === 1 ? 'N' + c : 'N',
+              length: 2,
+              firstMora: mora
             })
           }
         })
         result.push({
           candidate: 'NN',
-          commitablePart: 'NN',
-          length: 1
+          committablePart: 'NN',
+          length: 1,
+          firstMora: mora
         })
         return result
       } else if (mora === 'っ') {
         // 促音
         if (this.remainMoras.length < 2) {
           return moraKeyCandidates[mora].map((c) => {
-            return { candidate: c, commitablePart: c, length: 1 }
+            return {
+              candidate: c,
+              committablePart: c,
+              length: 1,
+              firstMora: mora
+            }
           })
         }
         const result = []
@@ -438,17 +489,28 @@ export default {
         moraKeyCandidates[nextMora].forEach((c) => {
           result.push({
             candidate: c[0] + c,
-            commitablePart: c[0],
-            length: 2
+            committablePart: c[0],
+            length: 2,
+            firstMora: mora
           })
         })
         moraKeyCandidates[mora].forEach((c) => {
-          result.push({ candidate: c, commitablePart: c, length: 1 })
+          result.push({
+            candidate: c,
+            committablePart: c,
+            length: 1,
+            firstMora: mora
+          })
         })
         return result
       } else {
         return moraKeyCandidates[mora].map((c) => {
-          return { candidate: c, commitablePart: c, length: 1 }
+          return {
+            candidate: c,
+            committablePart: c,
+            length: 1,
+            firstMora: mora
+          }
         })
       }
     }
