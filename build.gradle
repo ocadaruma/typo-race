@@ -3,7 +3,6 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 buildscript {
     ext {
         springBootVersion = '2.1.9.RELEASE'
-        lombokVersion = '1.8.10'
         repos = {
             mavenLocal()
             mavenCentral()
@@ -21,6 +20,8 @@ buildscript {
     }
 }
 
+repositories repos
+
 group = 'com.mayreh.typo'
 version = '0.1.0-SNAPSHOT'
 
@@ -30,15 +31,24 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'com.moowork.node'
 
-repositories repos
-
 dependencies {
-    compileOnly "org.projectlombok:lombok:$lombokVersion"
-    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 
     implementation('org.springframework.boot:spring-boot-starter-web')
-    implementation('com.google.guava:guava')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+dependencyManagement {
+    imports {
+        mavenBom SpringBootPlugin.BOM_COORDINATES
+    }
+
+    dependencies {
+        dependency 'org.projectlombok:lombok:1.18.10'
+    }
 }
 
 tasks.withType(JavaCompile) {
