@@ -1,0 +1,30 @@
+apply plugin: 'org.springframework.boot'
+apply plugin: 'com.moowork.node'
+
+dependencies {
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+node {
+    nodeModulesDir = file("${projectDir}/front")
+    version = "12.9.0"
+    yarnVersion = "1.19.1"
+    download = true
+}
+
+task nuxtGenerate(type: YarnTask, dependsOn: 'yarn') {
+    args = ['run', 'generate']
+}
+
+processResources {
+    into("static") {
+        from "${projectDir}/front/dist"
+    }
+}
+
+test {
+    testLogging {
+        exceptionFormat 'full'
+    }
+}

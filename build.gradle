@@ -20,61 +20,43 @@ buildscript {
     }
 }
 
-repositories repos
+allprojects {
+    repositories repos
 
-group = 'com.mayreh.typo'
-version = '0.1.0-SNAPSHOT'
-
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'com.moowork.node'
-
-dependencies {
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testCompileOnly 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
-
-    implementation('org.springframework.boot:spring-boot-starter-web')
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    group = 'com.mayreh.typo'
+    version = '0.1.0-SNAPSHOT'
 }
 
-dependencyManagement {
-    imports {
-        mavenBom SpringBootPlugin.BOM_COORDINATES
-    }
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'io.spring.dependency-management'
 
     dependencies {
-        dependency 'org.projectlombok:lombok:1.18.10'
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        testCompileOnly 'org.projectlombok:lombok'
+        testAnnotationProcessor 'org.projectlombok:lombok'
     }
-}
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-    options.compilerArgs << '--release' << '11'
-}
+    dependencyManagement {
+        imports {
+            mavenBom SpringBootPlugin.BOM_COORDINATES
+        }
 
-node {
-    nodeModulesDir = file("${projectDir}/front")
-    version = "12.9.0"
-    yarnVersion = "1.19.1"
-    download = true
-}
-
-task nuxtGenerate(type: YarnTask, dependsOn: 'yarn') {
-    args = ['run', 'generate']
-}
-
-processResources {
-    into("static") {
-        from "${projectDir}/front/dist"
+        dependencies {
+            dependency 'org.projectlombok:lombok:1.18.10'
+        }
     }
-}
 
-test {
-    testLogging {
-      exceptionFormat 'full'
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.compilerArgs << '--release' << '11'
+    }
+
+    test {
+        testLogging {
+            exceptionFormat 'full'
+        }
     }
 }
