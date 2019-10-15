@@ -3,6 +3,11 @@
     <div class="container">
       <div class="card">
         <div class="card-content">
+          <span>{{ text }}</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-content">
           <span class="done">{{ doneText }}</span>
           <span>{{ remainText }}</span>
         </div>

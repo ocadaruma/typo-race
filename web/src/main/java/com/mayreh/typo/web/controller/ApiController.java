@@ -3,10 +3,8 @@ package com.mayreh.typo.web.controller;
 import com.mayreh.typo.core.TypingProblem;
 import com.mayreh.typo.web.model.Race;
 import com.mayreh.typo.web.repository.TypingProblemRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +14,9 @@ import java.util.concurrent.ConcurrentMap;
 public class ApiController {
     private final TypingProblemRepository problemRepository;
     private final ConcurrentMap<String, Race> raceRepository;
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public static class NotFoundException extends RuntimeException {}
 
     public ApiController(TypingProblemRepository problemRepository) {
         this.problemRepository = problemRepository;
@@ -35,7 +36,11 @@ public class ApiController {
 
     @GetMapping("/api/race/{raceId}")
     public Race getRace(@PathVariable("raceId") String raceId) {
-        return raceRepository.get(raceId);
+        final Race race = raceRepository.get(raceId);
+        if (race == null) {
+            throw new NotFoundException();
+        }
+        return race;
     }
 
 //    @PostMapping("/api/race/{raceId}/start")
