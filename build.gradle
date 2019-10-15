@@ -9,6 +9,7 @@ buildscript {
             maven { url 'http://repo.maven.apache.org/maven2' }
             maven { url 'http://repo.spring.io/plugins-release' }
             maven { url 'https://plugins.gradle.org/m2/' }
+            maven { url 'https://maven.codelibs.org/' }
         }
     }
 
@@ -46,6 +47,7 @@ subprojects {
 
         dependencies {
             dependency 'org.projectlombok:lombok:1.18.10'
+            dependency 'org.codelibs:lucene-analyzers-kuromoji-ipadic-neologd:8.1.0-20190930'
         }
     }
 

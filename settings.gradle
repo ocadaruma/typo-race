@@ -1,4 +1,5 @@
 rootProject.name = 'typo-race'
 
+include ':core'
 include ':web'
 include ':tool'

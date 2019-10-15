@@ -1,0 +1,2 @@
+app:
+  output-dir: ${PROBLEM_OUTPUT_DIR:/home/hokada/develop/src/github.com/ocadaruma/typo-race/web/src/main/resources/problem}
