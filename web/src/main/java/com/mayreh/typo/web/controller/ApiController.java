@@ -47,9 +47,14 @@ public class ApiController {
     }
 
     @PostMapping("/api/race")
-    public Race newRace() {
+    public Race newRace(
+            @RequestParam(
+                    value = "type",
+                    required = false,
+                    defaultValue = "LONG") TypingProblem.ProblemType type) {
         final String raceId = UUID.randomUUID().toString();
-        final TypingProblem problem = problemRepository.nextProblem();
+        final TypingProblem problem = type == TypingProblem.ProblemType.SHORT ?
+                problemRepository.nextShortProblem() : problemRepository.nextLongProblem();
         final Race race = new Race(
                 raceId, Race.RaceState.WAITING, new ArrayList<>(), problem);
 
@@ -87,9 +92,8 @@ public class ApiController {
         return raceRepository.compute(raceId, (key, oldValue) -> {
             final List<Player> players = oldValue.getPlayers() == null ?
                     new ArrayList<>() : new ArrayList<>(oldValue.getPlayers());
-            final Player player = new Player(request.name, 0);
-            if (!players.contains(player)) {
-                players.add(player);
+            if (players.stream().noneMatch(p -> p.getName().equals(request.name))) {
+                players.add(new Player(request.name, 0));
             }
             notifyEvent(raceId, new RaceEvent(RaceEvent.EventType.PLAYERS_CHANGED, players));
 
@@ -118,6 +122,11 @@ public class ApiController {
                 while (count > 0) {
                     notifyEvent(raceId, new RaceEvent(RaceEvent.EventType.COUNTDOWN, count));
                     count--;
+                    try {
+                        Thread.sleep(1000L);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
                 raceRepository.compute(raceId, (key, oldValue) -> {
                     return new Race(race.getRaceId(), Race.RaceState.PLAYING, oldValue.getPlayers(), race.getProblem());

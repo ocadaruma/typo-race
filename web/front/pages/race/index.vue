@@ -12,7 +12,9 @@
 export default {
   methods: {
     async createNewRace() {
-      const race = await this.$axios.$post('race')
+      const race = await this.$axios.$post('race', null, {
+        params: { type: this.$route.query.type }
+      })
       this.$router.push({
         name: 'race-raceId',
         params: { raceId: race.raceId }

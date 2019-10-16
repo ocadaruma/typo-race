@@ -29,7 +29,7 @@ public class ProblemGenerator {
         private final String reading;
     }
 
-    public TypingProblem generate(String sourceText, List<ReadingHint> hints) {
+    public TypingProblem generate(TypingProblem.ProblemType type, String sourceText, List<ReadingHint> hints) {
         try (JapaneseTokenizer tokenizer = new JapaneseTokenizer(
                 null, false, JapaneseTokenizer.Mode.EXTENDED)) {
             final CharTermAttribute charTermAttribute = tokenizer.addAttribute(CharTermAttribute.class);
@@ -83,7 +83,7 @@ public class ProblemGenerator {
                 }
             }
 
-            return new TypingProblem(tokens, moras);
+            return new TypingProblem(type, tokens, moras);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

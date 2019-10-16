@@ -1,5 +1,6 @@
 package com.mayreh.typo.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -12,8 +13,12 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class TypingProblem {
+    public enum ProblemType {
+        SHORT,
+        LONG,
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -31,8 +36,17 @@ public class TypingProblem {
         String text;
     }
 
+    public TypingProblem(ProblemType type, List<Token> tokens, List<Mora> moras) {
+        this.type = type;
+        this.tokens = tokens;
+        this.moras = moras;
+    }
+
+    ProblemType type;
     List<Token> tokens;
     List<Mora> moras;
+
+    @JsonIgnore
     int allHiraganasCount;
 
     public String toJSON() {

@@ -1,7 +1,7 @@
 <template>
   <section class="section">
     <div class="container">
-      <b-field grouped v-show="!joined()">
+      <b-field grouped v-if="!joined()">
         <b-input placeholder="Name" v-model="name" />
         <p class="control">
           <button class="button is-primary" @click="joinRace()">
@@ -9,20 +9,33 @@
           </button>
         </p>
       </b-field>
-      <p v-show="joined()">Your Name: {{ name }}</p>
+      <p v-if="joined()">Your Name: {{ name }}</p>
     </div>
-    <div class="container problem-kanji">
-      <div id="card-kanji" class="card">
-        <div class="card-content">
-          <span>{{ text }}</span>
+    <div v-if="race.state === 'COUNTDOWN'" class="container">
+      <h1 class="title">{{ countdown }}</h1>
+    </div>
+    <div class="container" v-if="race.state === 'WAITING' && joined()">
+      <b-button size="is-large" @click="requestStart()">
+        START COUNTDOWN
+      </b-button>
+    </div>
+    <div
+      class="panel-problem"
+      v-if="race.state === 'PLAYING' || race.state === 'FINISHED'"
+    >
+      <div class="container problem-kanji">
+        <div id="card-kanji" class="card">
+          <div class="card-content">
+            <span>{{ text }}</span>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="container problem-hiragana">
-      <div id="card-hiragana" class="card">
-        <div class="card-content">
-          <span class="done">{{ doneText }}</span>
-          <span>{{ remainText }}</span>
+      <div class="container problem-hiragana">
+        <div id="card-hiragana" class="card">
+          <div class="card-content">
+            <span class="done">{{ doneText }}</span>
+            <span>{{ remainText }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -62,6 +75,7 @@ import { KEY_CODES, MORA_KEY_CANDIDATES } from '~/models/race.js'
 export default {
   data() {
     return {
+      countdown: 10,
       laneWidth: 0,
       doneMoras: [],
       doneRomajis: '',
@@ -164,6 +178,9 @@ export default {
     }
   },
   methods: {
+    requestStart() {
+      this.$axios.$post(`race/${this.race.raceId}/start`)
+    },
     openRaceStream() {
       const baseURL = this.$axios.defaults.baseURL
       this.eventSource = new EventSource(
@@ -175,8 +192,22 @@ export default {
       }
     },
     onMessage(e) {
-      const message = JSON.parse(e.data)
-      console.log(message)
+      const event = JSON.parse(e.data)
+      const eventType = event.eventType
+
+      if (eventType === 'COUNTDOWN') {
+        this.race.state = 'COUNTDOWN'
+        this.countdown = event.content
+      } else if (eventType === 'START') {
+        this.race.state = 'PLAYING'
+      } else if (eventType === 'FINISHED') {
+        this.race.state = 'FINISHED'
+        this.$buefy.dialog.alert(`WINNER : ${event.content}`)
+      } else if (eventType === 'PLAYERS_CHANGED') {
+        this.race.players = event.content
+      } else if (eventType === 'INPUT') {
+        this.race.players = event.content
+      }
     },
     dispose() {
       if (this.eventSource) {

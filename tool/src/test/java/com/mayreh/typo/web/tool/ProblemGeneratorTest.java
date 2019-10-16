@@ -14,7 +14,7 @@ public class ProblemGeneratorTest {
     public void testGenerate() {
         final ProblemGenerator generator = new ProblemGenerator();
 
-        final TypingProblem result = generator.generate(SOURCE_TEXT, Collections.emptyList());
+        final TypingProblem result = generator.generate(TypingProblem.ProblemType.SHORT, SOURCE_TEXT, Collections.emptyList());
 
         assertThat(result.getTokens()).hasSize(33);
 
@@ -50,6 +50,7 @@ public class ProblemGeneratorTest {
         final ProblemGenerator generator = new ProblemGenerator();
 
         final TypingProblem result = generator.generate(
+                TypingProblem.ProblemType.SHORT,
                 SOURCE_TEXT,
                 Collections.singletonList(new ProblemGenerator.ReadingHint(16, "カタ")));
 
