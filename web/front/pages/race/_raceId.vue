@@ -1,24 +1,28 @@
 <template>
   <section class="section">
-    <div class="container">
+    <div class="container problem-kanji">
       <div class="card">
         <div class="card-content">
           <span>{{ text }}</span>
         </div>
       </div>
+    </div>
+    <div class="container problem-hiragana">
       <div class="card">
         <div class="card-content">
           <span class="done">{{ doneText }}</span>
           <span>{{ remainText }}</span>
         </div>
       </div>
-      <div class="card">
-        <div class="card-content">
-          <span class="done">{{ doneRomajis }}</span>
-          <span>{{ remainRomajis }}</span>
-        </div>
-      </div>
     </div>
+    <!--    <div class="container problem-romaji">-->
+    <!--      <div class="card">-->
+    <!--        <div class="card-content">-->
+    <!--          <span class="done">{{ doneRomajis }}</span>-->
+    <!--          <span>{{ remainRomajis }}</span>-->
+    <!--        </div>-->
+    <!--      </div>-->
+    <!--    </div>-->
   </section>
 </template>
 
@@ -236,6 +240,18 @@ export default {
 <style scoped>
 .done {
   color: blue;
+}
+.problem-kanji {
+  padding: 8px;
+}
+.problem-hiragana {
+  padding: 8px;
+}
+.problem-romaji {
+  padding: 8px;
+}
+.problem-romaji .card-content {
+  word-break: break-all;
 }
 .miss {
   color: red;
