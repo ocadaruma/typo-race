@@ -33,6 +33,7 @@ public class TypingProblem {
 
     List<Token> tokens;
     List<Mora> moras;
+    int allHiraganasCount;
 
     public String toJSON() {
         final ObjectMapper mapper = new ObjectMapper();
@@ -48,7 +49,14 @@ public class TypingProblem {
         final ObjectMapper mapper = new ObjectMapper();
 
         try {
-            return mapper.readValue(json, TypingProblem.class);
+            final TypingProblem problem = mapper.readValue(json, TypingProblem.class);
+
+            int count = 0;
+            for (Mora mora : problem.moras) {
+                count += mora.text.length();
+            }
+            problem.setAllHiraganasCount(count);
+            return problem;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

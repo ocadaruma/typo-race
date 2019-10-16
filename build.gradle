@@ -48,6 +48,7 @@ subprojects {
         dependencies {
             dependency 'org.projectlombok:lombok:1.18.10'
             dependency 'org.codelibs:lucene-analyzers-kuromoji-ipadic-neologd:8.1.0-20190930'
+            dependency 'com.google.guava:guava:28.1-jre'
         }
     }
 

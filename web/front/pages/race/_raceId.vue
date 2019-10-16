@@ -1,14 +1,25 @@
 <template>
   <section class="section">
+    <div class="container">
+      <b-field grouped v-show="!joined()">
+        <b-input placeholder="Name" v-model="name" />
+        <p class="control">
+          <button class="button is-primary" @click="joinRace()">
+            Join Race
+          </button>
+        </p>
+      </b-field>
+      <p v-show="joined()">Your Name: {{ name }}</p>
+    </div>
     <div class="container problem-kanji">
-      <div class="card">
+      <div id="card-kanji" class="card">
         <div class="card-content">
           <span>{{ text }}</span>
         </div>
       </div>
     </div>
     <div class="container problem-hiragana">
-      <div class="card">
+      <div id="card-hiragana" class="card">
         <div class="card-content">
           <span class="done">{{ doneText }}</span>
           <span>{{ remainText }}</span>
@@ -23,6 +34,25 @@
     <!--        </div>-->
     <!--      </div>-->
     <!--    </div>-->
+    <div class="container">
+      <div id="players" ref="players">
+        <div
+          class="lane"
+          v-for="player in race.players"
+          v-bind:key="player.name"
+        >
+          <span
+            class="player"
+            :style="
+              'margin-left: ' + computePlayerLeftMargin(player.position) + 'px;'
+            "
+          >
+            <b-icon pack="fas" icon="user" />
+            <span>({{ player.name }})</span>
+          </span>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -32,13 +62,20 @@ import { KEY_CODES, MORA_KEY_CANDIDATES } from '~/models/race.js'
 export default {
   data() {
     return {
+      laneWidth: 0,
       doneMoras: [],
       doneRomajis: '',
       inputBuffer: ''
     }
   },
-  async asyncData({ app, params }) {
-    const race = await app.$axios.$get(`race/${params.raceId}`)
+  async asyncData({ app, params, query }) {
+    const name = query.name
+    let race = await app.$axios.$get(`race/${params.raceId}`)
+    if (name) {
+      race = await app.$axios.$post(`race/${params.raceId}/join`, {
+        name
+      })
+    }
 
     const remainMoras = []
     race.problem.moras.forEach((mora) => {
@@ -50,6 +87,8 @@ export default {
       text += token.text
     })
     return {
+      name: query.name,
+      race,
       text,
       remainMoras
     }
@@ -60,6 +99,13 @@ export default {
     },
     remainText() {
       return this.remainMoras.join('')
+    },
+    allHiraganas() {
+      let result = 0
+      this.race.problem.moras.forEach((mora) => {
+        result += mora.text.length
+      })
+      return result
     },
     remainRomajis() {
       let result = ''
@@ -84,13 +130,87 @@ export default {
       return result
     }
   },
+  beforeRouteLeave(to, from, next) {
+    this.dispose()
+    next()
+  },
   mounted() {
+    this.laneWidth = this.$refs.players.offsetWidth
+    if (this.race.state !== 'FINISHED') {
+      this.openRaceStream()
+    }
     window.addEventListener('keydown', this.captureKeyDown)
   },
   beforeDestroy() {
+    this.dispose()
     window.removeEventListener('keydown', this.captureKeyDown)
   },
+  watch: {
+    doneMoras(val) {
+      let doneHiraganas = 0
+      this.doneMoras.forEach((mora) => {
+        doneHiraganas += mora.length
+      })
+
+      const self = this
+      this.$axios
+        .$post(`race/${this.race.raceId}/input`, {
+          name: this.name,
+          doneCount: doneHiraganas
+        })
+        .then((res) => {
+          self.race = res
+        })
+    }
+  },
   methods: {
+    openRaceStream() {
+      const baseURL = this.$axios.defaults.baseURL
+      this.eventSource = new EventSource(
+        `${baseURL}/stream/race/${this.race.raceId}`
+      )
+      this.eventSource.onmessage = this.onMessage
+      this.eventSource.onerror = () => {
+        this.eventSource.close()
+      }
+    },
+    onMessage(e) {
+      const message = JSON.parse(e.data)
+      console.log(message)
+    },
+    dispose() {
+      if (this.eventSource) {
+        this.eventSource.close()
+        this.eventSource = null
+      }
+    },
+    computePlayerLeftMargin(position) {
+      const ratio = position / this.allHiraganas
+      return this.laneWidth * ratio
+    },
+    async joinRace() {
+      const name = this.name
+      if (!name) {
+        return
+      }
+
+      const race = await this.$axios.$post(`race/${this.race.raceId}/join`, {
+        name
+      })
+      this.race = race
+
+      this.$router.push({
+        name: 'race-raceId',
+        params: { raceId: this.race.raceId },
+        query: { name }
+      })
+    },
+    joined() {
+      if (this.$route.query.name) {
+        return true
+      }
+      return false
+    },
     captureKeyDown(event) {
       const key = KEY_CODES[event.keyCode]
 
@@ -100,6 +220,10 @@ export default {
       }
       // ended
       if (this.remainMoras.length === 0) {
+        return
+      }
+      // not playing
+      if (this.race.state !== 'PLAYING') {
         return
       }
 
@@ -156,7 +280,12 @@ export default {
         }
       }
 
-      console.log('MISS')
+      document.getElementById('card-kanji').className = 'card'
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          document.getElementById('card-kanji').className = 'card miss'
+        })
+      })
     },
     getCandidates(moraPosition) {
       const mora = this.remainMoras[moraPosition]
@@ -237,23 +366,41 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .done {
   color: blue;
 }
-.problem-kanji {
-  padding: 8px;
-}
-.problem-hiragana {
-  padding: 8px;
-}
-.problem-romaji {
+.container {
   padding: 8px;
 }
 .problem-romaji .card-content {
   word-break: break-all;
 }
+
+@keyframes colorchange {
+  0% {
+    background: #ff2457;
+  }
+  100% {
+    background: none;
+  }
+}
+
+.player {
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.player .icon {
+  background: yellow;
+}
+
+.lane {
+  border-left: 2px #47494e solid;
+  border-right: 2px #47494e solid;
+}
+
 .miss {
-  color: red;
+  animation: colorchange 0.5s;
 }
 </style>

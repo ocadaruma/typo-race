@@ -4,6 +4,8 @@ import com.mayreh.typo.core.TypingProblem;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 public class Race {
@@ -17,6 +19,8 @@ public class Race {
     private String raceId;
 
     private RaceState state;
+
+    private List<Player> players;
 
     private TypingProblem problem;
 }
