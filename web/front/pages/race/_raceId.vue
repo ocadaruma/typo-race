@@ -254,7 +254,7 @@ export default {
         return
       }
       // not playing
-      if (this.race.state !== 'PLAYING') {
+      if (this.race.state !== 'PLAYING' || !this.joined()) {
         return
       }
 
