@@ -59,3 +59,18 @@
   shell: "/home/ocadaruma/build.sh"
   become: yes
   become_user: ocadaruma
+
+- name: install systemd unit
+  copy:
+    dest: /etc/systemd/system/typo-race.service
+    src: typo-race.service
+    mode: 0755
+    group: root
+    owner: root
+
+- name: restart
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: typo-race
+    enabled: yes

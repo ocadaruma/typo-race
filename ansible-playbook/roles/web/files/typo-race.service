@@ -1,0 +1,15 @@
+[Unit]
+Description=Typo Race
+
+[Service]
+WorkingDirectory=/home/ocadaruma/deploy
+
+Restart=always
+Type=simple
+User=ocadaruma
+Group=ocadaruma
+
+ExecStart=/usr/bin/java -jar /home/ocadaruma/deploy/web-0.1.0-SNAPSHOT.jar
+
+[Install]
+WantedBy=multi-user.target
