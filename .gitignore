@@ -18,3 +18,5 @@ build/
 *.ipr
 out/
 
+id_rsa
+id_rsa.pub

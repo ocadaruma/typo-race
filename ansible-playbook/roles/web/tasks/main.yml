@@ -1,0 +1,61 @@
+---
+- name: create jdk directory
+  file:
+    path: /opt/AdoptOpenJDK
+    group: root
+    owner: root
+    mode: 0755
+    state: directory
+
+- name: download jdk11
+  unarchive:
+    dest: /opt/AdoptOpenJDK
+    group: root
+    owner: root
+    mode: 0755
+    remote_src: yes
+    src: "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.4%2B11/OpenJDK11U-jdk_x64_linux_hotspot_11.0.4_11.tar.gz"
+  tags:
+    - never
+
+- name: java symlink
+  file:
+    dest: /usr/bin/java
+    src: /opt/AdoptOpenJDK/jdk-11.0.4+11/bin/java
+    state: link
+    mode: 0777
+    group: root
+    owner: root
+
+- name: install git
+  yum:
+    name: git
+    state: latest
+
+- name: download app
+  git:
+    repo: https://github.com/ocadaruma/typo-race.git
+    dest: /home/ocadaruma/typo-race
+  become: yes
+  become_user: ocadaruma
+
+- name: build script
+  copy:
+    dest: /home/ocadaruma/build.sh
+    src: build.sh
+    mode: 0755
+    group: ocadaruma
+    owner: ocadaruma
+
+- name: mkdir deploy
+  file:
+    path: /home/ocadaruma/deploy
+    group: ocadaruma
+    owner: ocadaruma
+    mode: 0755
+    state: directory
+
+- name: build app
+  shell: "/home/ocadaruma/build.sh"
+  become: yes
+  become_user: ocadaruma
