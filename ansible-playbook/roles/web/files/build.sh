@@ -3,7 +3,7 @@
 set -eu
 
 export JAVA_HOME="/opt/AdoptOpenJDK/jdk-11.0.4+11"
-export BASE_URL="//typo-race.mayreh.com/api"
+export BASE_URL="//34.84.252.90:8080/api"
 
 cd /home/ocadaruma/typo-race
 
